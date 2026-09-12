@@ -25,6 +25,7 @@ type Place = {
   url?: string;
   polygon?: Ring[];
   lines?: Ring[];
+  commonsFile?: string;
 };
 
 type Candidate = {
@@ -316,6 +317,26 @@ function wikipediaTitle(tags: Tags): string | undefined {
   return tags.wikidata ? wikidata[tags.wikidata]?.enwiki : undefined;
 }
 
+function stringAt(v: unknown, ...path: string[]): string | undefined {
+  let cur: unknown = v;
+  for (const key of path) {
+    if (typeof cur !== "object" || cur === null || !(key in cur)) return undefined;
+    cur = Reflect.get(cur, key);
+  }
+  return typeof cur === "string" ? cur : undefined;
+}
+
+function wikidataImage(tags: Tags): string | undefined {
+  const entity = tags.wikidata ? wikidata[tags.wikidata] : undefined;
+  return stringAt(entity?.claims.P18?.[0], "mainsnak", "datavalue", "value");
+}
+
+function commonsFileFromThumb(url: unknown): string | undefined {
+  if (typeof url !== "string") return undefined;
+  const m = url.match(/\/commons\/(?:thumb\/)?[0-9a-f]\/[0-9a-f]{2}\/([^/?]+)/);
+  return m ? decodeURIComponent(m[1]).replace(/_/g, " ") : undefined;
+}
+
 function isClosed(tags: Tags): boolean {
   const entity = tags.wikidata ? wikidata[tags.wikidata] : undefined;
   return Boolean(entity && (entity.claims.P3999 || entity.claims.P576));
@@ -472,7 +493,8 @@ for (const c of byScore) {
   kept.push(c);
 }
 
-const summaries: Record<string, { extract: string; url: string } | null> =
+type Summary = { extract: string; url: string; image?: string };
+const summaries: Record<string, Summary | null> =
   existsSync(SUMMARY_CACHE)
     ? JSON.parse(readFileSync(SUMMARY_CACHE, "utf8"))
     : {};
@@ -488,10 +510,10 @@ for (const c of kept) {
   );
   if (res.ok) {
     const j = await res.json();
-    summaries[c.wikipedia] = {
-      extract: j.extract,
-      url: j.content_urls.desktop.page,
-    };
+    const summary: Summary = { extract: j.extract, url: j.content_urls.desktop.page };
+    const image = commonsFileFromThumb(j.thumbnail?.source);
+    if (image) summary.image = image;
+    summaries[c.wikipedia] = summary;
   } else {
     console.error(`wikipedia ${res.status} for ${c.wikipedia}`);
     summaries[c.wikipedia] = null;
@@ -526,6 +548,8 @@ const places: Place[] = kept
       place.blurb = summary.extract;
       place.url = summary.url;
     }
+    const commonsFile = wikidataImage(c.tags) ?? summary?.image;
+    if (commonsFile) place.commonsFile = commonsFile;
     if (c.polygon) place.polygon = roundRings(c.polygon);
     if (c.lines) place.lines = roundRings(c.lines);
     return place;
@@ -541,7 +565,7 @@ console.error(
   `\nkept:\n${kept.map((c) => `${c.score.toFixed(1).padStart(5)} ${c.kind.padEnd(18)} ${c.name}`).join("\n")}`
 );
 console.error(
-  `\nkept ${places.length} places, ${places.filter((p) => p.polygon).length} with polygons, ${places.filter((p) => p.lines).length} roads, ${places.filter((p) => p.url).length} with wikipedia`
+  `\nkept ${places.length} places, ${places.filter((p) => p.polygon).length} with polygons, ${places.filter((p) => p.lines).length} roads, ${places.filter((p) => p.url).length} with wikipedia, ${places.filter((p) => p.commonsFile).length} with photo`
 );
 console.error(
   Object.entries(counts)

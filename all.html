@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>N17 Tap · all places</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  html, body { margin: 0; height: 100%; background: #000; font-family: ui-monospace, Menlo, monospace; }
+  #map { position: absolute; inset: 0; }
+  #legend { position: absolute; top: 10px; right: 10px; z-index: 1000; background: rgba(0,0,20,0.85); color: #ddd; padding: 8px 10px; border-radius: 6px; font-size: 12px; max-height: calc(100% - 40px); overflow: auto; }
+  #legend label { display: block; cursor: pointer; white-space: nowrap; }
+  #legend .d { display: inline-block; width: 10px; height: 10px; border-radius: 5px; margin-right: 6px; vertical-align: middle; }
+  .leaflet-popup-content { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="legend"></div>
+<script>
+const DIFFICULTY_COLOURS = { 1: '#90ee90', 2: '#ffd580', 3: '#ff6b6b' };
+L.Map.ScrollWheelZoom.include({
+  _performZoom() {
+    const map = this._map, zoom = map.getZoom();
+    map._stop();
+    const d2 = this._delta / (map.options.wheelPxPerZoomLevel * 4);
+    const d3 = 4 * Math.log(2 / (1 + Math.exp(-Math.abs(d2)))) / Math.LN2;
+    const delta = map._limitZoom(zoom + (this._delta > 0 ? d3 : -d3)) - zoom;
+    this._delta = 0; this._startTime = null;
+    if (delta) map.setZoomAround(this._lastMousePos, zoom + delta, { animate: false });
+  }
+});
+const map = L.map('map', { zoomSnap: 0, zoomDelta: 0.5, wheelPxPerZoomLevel: 10, wheelDebounceTime: 10 });
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Esri, Maxar, Earthstar Geographics', maxZoom: 19 }).addTo(map);
+
+const layersByKind = {};
+function popup(p) {
+  return `<b>${p.name}</b><br>${p.kind} · difficulty ${p.difficulty}${p.street ? `<br>${p.street}` : ''}${p.url ? `<br><a href="${p.url}" target="_blank">Wikipedia</a>` : ''}`;
+}
+function draw(p, layer) {
+  const colour = DIFFICULTY_COLOURS[p.difficulty] ?? '#fff';
+  if (p.polygon) L.polygon(p.polygon, { color: colour, weight: 1.5, fillColor: colour, fillOpacity: 0.3 }).bindPopup(popup(p)).addTo(layer);
+  if (p.lines) L.polyline(p.lines, { color: colour, weight: 4, opacity: 0.8 }).bindPopup(popup(p)).addTo(layer);
+  L.circleMarker([p.lat, p.lng], { radius: 5, color: '#000', weight: 1, fillColor: colour, fillOpacity: 1 }).bindPopup(popup(p)).addTo(layer);
+}
+
+async function init() {
+  const feature = await (await fetch('n17.geojson')).json();
+  const ring = feature.geometry.coordinates[0].map(([lng, lat]) => [lat, lng]);
+  L.polyline(ring, { color: '#44f8fb', weight: 2, interactive: false }).addTo(map);
+  map.fitBounds(L.latLngBounds(ring));
+
+  const places = await (await fetch('places.json')).json();
+  const counts = {};
+  for (const p of places) {
+    counts[p.kind] = (counts[p.kind] ?? 0) + 1;
+    layersByKind[p.kind] ??= L.layerGroup().addTo(map);
+    draw(p, layersByKind[p.kind]);
+  }
+  const legend = document.getElementById('legend');
+  legend.innerHTML = `<div style="margin-bottom:6px">${places.length} places · <span class="d" style="background:${DIFFICULTY_COLOURS[1]}"></span>1 <span class="d" style="background:${DIFFICULTY_COLOURS[2]}"></span>2 <span class="d" style="background:${DIFFICULTY_COLOURS[3]}"></span>3</div>`
+    + Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([kind, n]) =>
+      `<label><input type="checkbox" checked data-kind="${kind}"> ${n} ${kind}</label>`).join('');
+  legend.querySelectorAll('input').forEach(cb => cb.onchange = () => {
+    const layer = layersByKind[cb.dataset.kind];
+    cb.checked ? layer.addTo(map) : map.removeLayer(layer);
+  });
+}
+init();
+</script>
+</body>
+</html>

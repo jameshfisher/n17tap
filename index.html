@@ -46,6 +46,9 @@
   #sheet .meta { color: #fff; font-size: 13px; margin-bottom: 8px; }
   #sheet .blurb { font-family: Arial, sans-serif; color: #ddd; font-size: 14px; line-height: 1.4; }
   #sheet .blurb a { color: var(--cyan); }
+  #sheet .photo { display: block; width: 100%; max-height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 8px; }
+  #sheet .credit { font-size: 11px; color: #888; margin-top: 4px; }
+  #sheet .credit a { color: #888; }
   #sheet pre { color: #fff; font-size: 13px; line-height: 1.5; margin: 0 0 8px; white-space: pre-wrap; }
   .btn { display: block; width: 100%; margin-top: 12px; background: var(--cyan); color: #000; border: 0; border-radius: 6px; padding: 12px; font: bold 16px Arial, sans-serif; cursor: pointer; }
   .btn.secondary { background: transparent; color: var(--cyan); border: 1px solid var(--cyan); }
@@ -345,11 +348,17 @@ function reveal(place, guess, metres, score, round, animate) {
     setHeader(`${fmtDistance(metres)} away · Score ${score}${m > 1 ? ` x ${m}` : ''}`, colour);
     setInstruction(`<b style="color:${colour}">${place.name}</b>`);
     const where = place.street ? ` on ${place.street}` : '';
+    const photo = place.commonsFile
+      ? `<img class="photo" src="https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(place.commonsFile)}?width=640" alt="">`
+      : '';
+    const credit = place.commonsFile
+      ? `<div class="credit">Photo: <a href="https://commons.wikimedia.org/wiki/File:${encodeURIComponent(place.commonsFile)}" target="_blank" rel="noopener">Wikimedia Commons</a></div>`
+      : '';
     const blurb = place.blurb
       ? `${place.blurb}${place.url ? ` <a href="${place.url}" target="_blank" rel="noopener">Wikipedia ↗</a>` : ''}`
       : `${place.name} is ${article(place.kind)}${where} in N17.`;
     const last = round >= ROUNDS;
-    openSheet(`<div class="title">${place.name}</div><div class="meta">${fmtDistance(metres)} away · Score ${score}${m > 1 ? ` (x${m})` : ''}</div><div class="blurb">${blurb}</div><button class="btn" id="next">${last ? 'See results' : 'Next'}</button>`);
+    openSheet(`<div class="title">${place.name}</div><div class="meta">${fmtDistance(metres)} away · Score ${score}${m > 1 ? ` (x${m})` : ''}</div><div class="blurb">${photo}${blurb}${credit}</div><button class="btn" id="next">${last ? 'See results' : 'Next'}</button>`);
     el('next').onclick = () => { Sound.play('click'); startRound(); };
   };
   if (!animate) return finish();
@@ -406,6 +415,7 @@ async function init() {
   await drawBoundary();
   places = await (await fetch('places.json')).json();
   daily = pickDaily(places, dayNumber());
+  setHeader(`${ROUNDS} rounds · Ready`, '#44f8fb');
   fitN17(false);
   map.on('click', onTap);
   renderScore();
