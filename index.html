@@ -101,7 +101,10 @@ function todayKey() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+const devDayParam = new URLSearchParams(location.search).get('day');
+const DEV_DAY = devDayParam === 'random' ? Math.floor(Math.random() * 100000) + 1 : devDayParam ? Number(devDayParam) : null;
 function dayNumber() {
+  if (DEV_DAY !== null) return DEV_DAY;
   const d = new Date();
   return Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - EPOCH) / 86400000) + 1;
 }
@@ -232,8 +235,8 @@ const Sound = (() => {
 
 const stateKey = `n17tap-${todayKey()}`;
 let state = { rounds: [] };
-try { state = JSON.parse(localStorage.getItem(stateKey)) || state; } catch (e) {}
-function save() { try { localStorage.setItem(stateKey, JSON.stringify(state)); } catch (e) {} }
+if (DEV_DAY === null) try { state = JSON.parse(localStorage.getItem(stateKey)) || state; } catch (e) {}
+function save() { if (DEV_DAY !== null) return; try { localStorage.setItem(stateKey, JSON.stringify(state)); } catch (e) {} }
 
 // Leaflet drops any zoom request that arrives while a zoom animation is running,
 // so continuous (zoomSnap 0) wheel zoom crawls on a trackpad. Apply wheel zoom
