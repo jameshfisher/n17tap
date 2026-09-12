@@ -7,6 +7,9 @@ const WIKIDATA_FILE = "wikidata/entities.json.gz";
 const SUMMARY_CACHE = "wikipedia/summaries.json";
 const OUT_FILE = "places.json";
 
+const CUTOFF = 5;
+const WIKIPEDIA_BONUS = 2;
+
 type LatLng = { lat: number; lng: number };
 type Ring = [number, number][];
 type Tags = Record<string, string>;
@@ -14,74 +17,85 @@ type Tags = Record<string, string>;
 type Place = {
   name: string;
   kind: string;
+  difficulty: number;
   lat: number;
   lng: number;
   street?: string;
   blurb?: string;
   url?: string;
   polygon?: Ring[];
+  lines?: Ring[];
 };
 
 type Candidate = {
   id: string;
   name: string;
   kind: string;
+  base: number;
   tags: Tags;
   centre: LatLng;
   polygon?: Ring[];
-  area: number;
+  lines?: Ring[];
+  size: number;
   wikidata?: string;
   wikipedia?: string;
+  score: number;
 };
 
-const KINDS: Record<string, Record<string, string>> = {
+type Kind = { kind: string; base: number };
+
+const KINDS: Record<string, Record<string, Kind>> = {
   amenity: {
-    pub: "pub",
-    bar: "bar",
-    library: "library",
-    school: "school",
-    college: "college",
-    university: "university",
-    community_centre: "community centre",
-    police: "police station",
-    fire_station: "fire station",
-    theatre: "theatre",
-    cinema: "cinema",
-    marketplace: "market",
-    hospital: "hospital",
-    townhall: "town hall",
+    pub: { kind: "pub", base: 5 },
+    bar: { kind: "bar", base: 3 },
+    library: { kind: "library", base: 6 },
+    school: { kind: "school", base: 5 },
+    college: { kind: "college", base: 6 },
+    university: { kind: "university", base: 7 },
+    community_centre: { kind: "community centre", base: 4 },
+    police: { kind: "police station", base: 6 },
+    fire_station: { kind: "fire station", base: 5 },
+    theatre: { kind: "theatre", base: 6 },
+    cinema: { kind: "cinema", base: 6 },
+    marketplace: { kind: "market", base: 7 },
+    hospital: { kind: "hospital", base: 9 },
+    townhall: { kind: "town hall", base: 8 },
   },
   leisure: {
-    park: "park",
-    garden: "garden",
-    playground: "playground",
-    pitch: "pitch",
-    sports_centre: "sports centre",
-    stadium: "stadium",
-    swimming_pool: "swimming pool",
-    nature_reserve: "nature reserve",
-    golf_course: "golf course",
-    ice_rink: "ice rink",
+    park: { kind: "park", base: 7 },
+    garden: { kind: "garden", base: 3 },
+    playground: { kind: "playground", base: 2 },
+    pitch: { kind: "pitch", base: 2 },
+    sports_centre: { kind: "sports centre", base: 5 },
+    stadium: { kind: "stadium", base: 10 },
+    swimming_pool: { kind: "swimming pool", base: 5 },
+    nature_reserve: { kind: "nature reserve", base: 6 },
+    golf_course: { kind: "golf course", base: 6 },
+    ice_rink: { kind: "ice rink", base: 6 },
   },
   shop: {
-    supermarket: "supermarket",
-    department_store: "department store",
-    mall: "shopping centre",
+    supermarket: { kind: "supermarket", base: 5 },
+    department_store: { kind: "department store", base: 7 },
+    mall: { kind: "shopping centre", base: 8 },
   },
   tourism: {
-    museum: "museum",
-    hotel: "hotel",
-    attraction: "attraction",
-    gallery: "gallery",
-    zoo: "zoo",
+    museum: { kind: "museum", base: 7 },
+    hotel: { kind: "hotel", base: 4 },
+    attraction: { kind: "attraction", base: 5 },
+    gallery: { kind: "gallery", base: 4 },
+    zoo: { kind: "zoo", base: 8 },
   },
-  historic: { castle: "castle", manor: "manor house", monument: "monument" },
+  historic: {
+    castle: { kind: "castle", base: 8 },
+    manor: { kind: "manor house", base: 6 },
+    monument: { kind: "monument", base: 5 },
+  },
   landuse: {
-    cemetery: "cemetery",
-    recreation_ground: "recreation ground",
-    allotments: "allotments",
+    cemetery: { kind: "cemetery", base: 6 },
+    recreation_ground: { kind: "recreation ground", base: 6 },
+    allotments: { kind: "allotments", base: 3 },
   },
-  railway: { station: "station" },
+  railway: { station: { kind: "station", base: 9 } },
 };
 
 const WORSHIP: Record<string, string> = {
@@ -93,11 +107,22 @@ const WORSHIP: Record<string, string> = {
   buddhist: "temple",
 };
 
-function kindOf(tags: Tags): string | undefined {
+const ROADS: Record<string, number> = {
+  trunk: 7,
+  primary: 7,
+  secondary: 6,
+  tertiary: 5,
+  pedestrian: 2,
+  unclassified: 3.5,
+  residential: 3.5,
+  living_street: 2,
+};
+
+function kindOf(tags: Tags): Kind | undefined {
   if (tags.amenity === "place_of_worship")
-    return WORSHIP[tags.religion ?? ""] ?? "place of worship";
+    return { kind: WORSHIP[tags.religion ?? ""] ?? "place of worship", base: 4 };
   if (tags.leisure === "pitch" && tags.sport === "skateboard")
-    return "skatepark";
+    return { kind: "skatepark", base: 4 };
   for (const [key, values] of Object.entries(KINDS)) {
     const v = tags[key];
     if (v && values[v]) return values[v];
@@ -198,7 +223,14 @@ function stitchRings(wayIds: string[]): Ring[] | undefined {
   return rings.length ? rings : undefined;
 }
 
-function shoelace(rings: Ring[]): { area: number; centre: LatLng } {
+const METRES_PER_DEGREE = 111320;
+
+function metres(a: LatLng, b: LatLng): number {
+  const k = Math.cos((a.lat * Math.PI) / 180);
+  return Math.hypot((a.lng - b.lng) * k, a.lat - b.lat) * METRES_PER_DEGREE;
+}
+
+function shoelace(rings: Ring[]): { squareMetres: number; centre: LatLng } {
   let area = 0,
     cx = 0,
     cy = 0;
@@ -212,10 +244,38 @@ function shoelace(rings: Ring[]): { area: number; centre: LatLng } {
       cy += (y1 + y2) * f;
     }
   }
+  const centre = { lat: cy / (3 * area), lng: cx / (3 * area) };
+  const k = Math.cos((centre.lat * Math.PI) / 180);
   return {
-    area: Math.abs(area / 2),
-    centre: { lat: cy / (3 * area), lng: cx / (3 * area) },
+    squareMetres: Math.abs(area / 2) * METRES_PER_DEGREE * METRES_PER_DEGREE * k,
+    centre,
   };
+}
+
+function lineLength(line: Ring): number {
+  let total = 0;
+  for (let i = 0; i < line.length - 1; i++)
+    total += metres(
+      { lat: line[i][0], lng: line[i][1] },
+      { lat: line[i + 1][0], lng: line[i + 1][1] }
+    );
+  return total;
+}
+
+function midpoint(line: Ring): LatLng {
+  const half = lineLength(line) / 2;
+  let walked = 0;
+  for (let i = 0; i < line.length - 1; i++) {
+    const a = { lat: line[i][0], lng: line[i][1] };
+    const b = { lat: line[i + 1][0], lng: line[i + 1][1] };
+    const d = metres(a, b);
+    if (walked + d >= half) {
+      const t = d ? (half - walked) / d : 0;
+      return { lat: a.lat + (b.lat - a.lat) * t, lng: a.lng + (b.lng - a.lng) * t };
+    }
+    walked += d;
+  }
+  return { lat: line[0][0], lng: line[0][1] };
 }
 
 function inRing(pt: LatLng, ring: Ring): boolean {
@@ -235,11 +295,6 @@ function inPolygon(pt: LatLng, rings: Ring[]): boolean {
   return rings.some((r) => inRing(pt, r));
 }
 
-function metres(a: LatLng, b: LatLng): number {
-  const k = Math.cos((a.lat * Math.PI) / 180);
-  return Math.hypot((a.lng - b.lng) * k, a.lat - b.lat) * 111320;
-}
-
 const boundary: Ring[] = JSON.parse(
   readFileSync(BOUNDARY_FILE, "utf8")
 ).geometry.coordinates.map((ring: [number, number][]) =>
@@ -256,28 +311,66 @@ const wikidata: Record<string, Entity> = existsSync(WIKIDATA_FILE)
   ? JSON.parse(gunzipSync(readFileSync(WIKIDATA_FILE)).toString("utf8"))
   : {};
 
+function wikipediaTitle(tags: Tags): string | undefined {
+  if (tags.wikipedia?.startsWith("en:")) return tags.wikipedia.slice(3);
+  return tags.wikidata ? wikidata[tags.wikidata]?.enwiki : undefined;
+}
+
+function isClosed(tags: Tags): boolean {
+  const entity = tags.wikidata ? wikidata[tags.wikidata] : undefined;
+  return Boolean(entity && (entity.claims.P3999 || entity.claims.P576));
+}
+
+function insideFraction(rings: Ring[]): number {
+  const pts = rings.flat();
+  const lats = pts.map((q) => q[0]);
+  const lngs = pts.map((q) => q[1]);
+  const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+  const steps = 40;
+  let inShape = 0, inBoth = 0;
+  for (let i = 0; i < steps; i++)
+    for (let j = 0; j < steps; j++) {
+      const pt = {
+        lat: minLat + ((maxLat - minLat) * (i + 0.5)) / steps,
+        lng: minLng + ((maxLng - minLng) * (j + 0.5)) / steps,
+      };
+      if (!inPolygon(pt, rings)) continue;
+      inShape++;
+      if (inPolygon(pt, boundary)) inBoth++;
+    }
+  return inShape ? inBoth / inShape : 0;
+}
+
+function clamp(n: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, n));
+}
+
 function candidate(
   id: string,
   tags: Tags,
-  geometry: { centre: LatLng; polygon?: Ring[]; area: number }
+  geometry: { centre: LatLng; polygon?: Ring[]; squareMetres: number }
 ): Candidate | undefined {
   const kind = kindOf(tags);
-  if (!kind || !tags.name || isDefunct(tags)) return undefined;
-  if (!inPolygon(geometry.centre, boundary)) return undefined;
-  const wd = tags.wikidata;
-  const entity = wd ? wikidata[wd] : undefined;
-  if (entity && (entity.claims.P3999 || entity.claims.P576)) return undefined;
-  const wikipedia = tags.wikipedia?.startsWith("en:")
-    ? tags.wikipedia.slice(3)
-    : entity?.enwiki;
+  if (!kind || !tags.name || isDefunct(tags) || isClosed(tags)) return undefined;
+  const inside = geometry.polygon
+    ? insideFraction(geometry.polygon)
+    : inPolygon(geometry.centre, boundary) ? 1 : 0;
+  if (inside === 0) return undefined;
+  const squareMetres = geometry.squareMetres * inside;
+  const wikipedia = wikipediaTitle(tags);
+  const sizeBonus = clamp(Math.log10(squareMetres) - 3, 0, 3);
   return {
     id,
     name: tags.name,
-    kind,
+    ...kind,
     tags,
-    ...geometry,
-    wikidata: wd,
+    centre: geometry.centre,
+    polygon: geometry.polygon,
+    size: squareMetres,
+    wikidata: tags.wikidata,
     wikipedia,
+    score: kind.base + sizeBonus + (wikipedia ? WIKIPEDIA_BONUS : 0),
   };
 }
 
@@ -285,7 +378,7 @@ const candidates: Candidate[] = [];
 for (const [id, tags] of nodeTags) {
   const centre = nodes.get(id);
   if (!centre) continue;
-  const c = candidate(`node/${id}`, tags, { centre, area: 0 });
+  const c = candidate(`node/${id}`, tags, { centre, squareMetres: 0 });
   if (c) candidates.push(c);
 }
 for (const [id, way] of ways) {
@@ -308,25 +401,67 @@ for (const [id, rel] of relations) {
   });
   if (c) candidates.push(c);
 }
+
+const roads = new Map<string, { lines: Ring[]; tags: Tags; base: number }>();
+for (const [id, way] of ways) {
+  const base = ROADS[way.tags.highway ?? ""];
+  if (base === undefined || !way.tags.name) continue;
+  const line = wayRing(id);
+  if (!line || line.length < 2) continue;
+  if (!inPolygon(midpoint(line), boundary)) continue;
+  const road = roads.get(way.tags.name) ?? { lines: [], tags: way.tags, base };
+  road.lines.push(line);
+  road.base = Math.max(road.base, base);
+  if (wikipediaTitle(way.tags)) road.tags = way.tags;
+  roads.set(way.tags.name, road);
+}
+for (const [name, road] of roads) {
+  const length = road.lines.reduce((sum, l) => sum + lineLength(l), 0);
+  const longest = [...road.lines].sort((a, b) => lineLength(b) - lineLength(a))[0];
+  const wikipedia = wikipediaTitle(road.tags);
+  candidates.push({
+    id: `road/${name}`,
+    name,
+    kind: "road",
+    base: road.base,
+    tags: road.tags,
+    centre: midpoint(longest),
+    lines: road.lines,
+    size: length,
+    wikidata: road.tags.wikidata,
+    wikipedia,
+    score:
+      road.base +
+      clamp(Math.log10(length / 300), -2, 2) +
+      (wikipedia ? WIKIPEDIA_BONUS : 0),
+  });
+}
 console.error(`${candidates.length} named candidates inside boundary`);
 
 const dropped: string[] = [];
 function drop(c: Candidate, why: string) {
-  dropped.push(`${c.kind.padEnd(18)} ${c.name.padEnd(50)} ${why}`);
+  dropped.push(
+    `${c.score.toFixed(1).padStart(5)} ${c.kind.padEnd(18)} ${c.name.padEnd(50)} ${why}`
+  );
 }
 
-const byArea = [...candidates].sort((a, b) => b.area - a.area);
+const byScore = [...candidates].sort((a, b) => b.score - a.score || b.size - a.size);
 const kept: Candidate[] = [];
-for (const c of byArea) {
+for (const c of byScore) {
+  if (c.score < CUTOFF) {
+    drop(c, "below cutoff");
+    continue;
+  }
   const container = kept.find(
-    (k) => k.polygon && k.area > c.area && inPolygon(c.centre, k.polygon)
+    (k) => k.polygon && k.size > c.size && inPolygon(c.centre, k.polygon)
   );
-  if (container && !c.wikipedia) {
+  if (container && !c.lines && !c.wikipedia) {
     drop(c, `inside ${container.name}`);
     continue;
   }
   const twin = kept.find(
     (k) =>
+      k.kind === c.kind &&
       k.name.toLowerCase() === c.name.toLowerCase() &&
       metres(k.centre, c.centre) < 300
   );
@@ -367,12 +502,21 @@ writeFileSync(SUMMARY_CACHE, JSON.stringify(summaries, null, 1) + "\n");
 function round6(n: number): number {
   return Math.round(n * 1e6) / 1e6;
 }
+function roundRings(rings: Ring[]): Ring[] {
+  return rings.map((r) => r.map(([lat, lng]) => [round6(lat), round6(lng)]));
+}
+function difficulty(score: number): number {
+  if (score >= 9) return 1;
+  if (score >= 7) return 2;
+  return 3;
+}
 
 const places: Place[] = kept
   .map((c) => {
     const place: Place = {
       name: c.name,
       kind: c.kind,
+      difficulty: difficulty(c.score),
       lat: round6(c.centre.lat),
       lng: round6(c.centre.lng),
     };
@@ -382,10 +526,8 @@ const places: Place[] = kept
       place.blurb = summary.extract;
       place.url = summary.url;
     }
-    if (c.polygon)
-      place.polygon = c.polygon.map((r) =>
-        r.map(([lat, lng]) => [round6(lat), round6(lng)])
-      );
+    if (c.polygon) place.polygon = roundRings(c.polygon);
+    if (c.lines) place.lines = roundRings(c.lines);
     return place;
   })
   .sort((a, b) => a.name.localeCompare(b.name));
@@ -396,7 +538,10 @@ const counts: Record<string, number> = {};
 for (const p of places) counts[p.kind] = (counts[p.kind] ?? 0) + 1;
 console.error(`\ndropped:\n${dropped.join("\n")}`);
 console.error(
-  `\nkept ${places.length} places, ${places.filter((p) => p.polygon).length} with polygons, ${places.filter((p) => p.url).length} with wikipedia`
+  `\nkept:\n${kept.map((c) => `${c.score.toFixed(1).padStart(5)} ${c.kind.padEnd(18)} ${c.name}`).join("\n")}`
+);
+console.error(
+  `\nkept ${places.length} places, ${places.filter((p) => p.polygon).length} with polygons, ${places.filter((p) => p.lines).length} roads, ${places.filter((p) => p.url).length} with wikipedia`
 );
 console.error(
   Object.entries(counts)
