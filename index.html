@@ -183,6 +183,7 @@ function quip(score, metres) {
   return "I can't unsee that.";
 }
 function article(kind) {
+  if (/s$/.test(kind)) return kind;
   return /^[aeiou]/.test(kind) ? `an ${kind}` : `a ${kind}`;
 }
 function fmtDistance(m) {

@@ -13,9 +13,22 @@ Static site: `index.html` plus `places.json`. Serve any way you like:
 
     bun build.ts
 
+Inputs:
+
 - `osm/area.osm.gz`: raw OpenStreetMap XML for N17 and neighbouring districts, fetched by `osm/fetch.sh`. Snapshot 12 Sep 2026.
-- `places.src.json`: the curated list. One entry per place: OSM id, kind, optional blurb and url. Blurbs are Wikipedia summaries.
-- `build.ts`: resolves each OSM id in the snapshot to a name, street, centroid and, for ways and multipolygon relations, an outline polygon.
+- `n17.geojson`: the district boundary. Only objects whose centroid is inside count.
+- `wikidata/entities.json.gz`: every Wikidata entity referenced by a `wikidata` tag in the snapshot, fetched by `wikidata/fetch.ts`. Used for the Wikipedia article title and to skip closed places.
+- `wikipedia/summaries.json`: cached Wikipedia summaries. The build fetches any it is missing.
+
+Rules, in order:
+
+1. Named OSM object with a tag in the `KINDS` table in `build.ts`: pubs, parks, schools, churches, stations, supermarkets and so on.
+2. Centroid inside the boundary.
+3. Not tagged `disused:*` or similar, and not marked closed in Wikidata.
+4. If it sits inside a bigger kept place and has no Wikipedia article, the bigger place wins. So "Toddler Play Area" inside a park is dropped but Bruce Castle inside its park stays.
+5. Same name within 300 m is a duplicate. The larger one wins.
+
+No hand curation. To run this for another district: replace the boundary file, refetch the OSM box, refetch Wikidata, rebuild.
 
 Places with a polygon score 100 anywhere inside it. Outside, distance is measured to the nearest edge.
 Map tiles are Esri World Imagery.
