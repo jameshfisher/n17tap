@@ -7,8 +7,18 @@ Static site: `index.html` plus `places.json`. Serve any way you like:
 
     python3 -m http.server 8765
 
-Places come from OpenStreetMap (Overpass, bbox around Tottenham), filtered to outcode N17 via postcodes.io reverse geocoding.
-Blurbs come from Wikipedia where OSM has a `wikipedia` tag. Map tiles are Esri World Imagery.
+## Data
+
+`places.json` is generated. Do not edit it by hand.
+
+    bun build.ts
+
+- `osm/area.osm.gz`: raw OpenStreetMap XML for N17 and neighbouring districts, fetched by `osm/fetch.sh`. Snapshot 12 Sep 2026.
+- `places.src.json`: the curated list. One entry per place: OSM id, kind, optional blurb and url. Blurbs are Wikipedia summaries.
+- `build.ts`: resolves each OSM id in the snapshot to a name, street, centroid and, for ways and multipolygon relations, an outline polygon.
+
+Places with a polygon score 100 anywhere inside it. Outside, distance is measured to the nearest edge.
+Map tiles are Esri World Imagery.
 
 UI is a hand-written homage to maptap (cyan-on-black HUD, coloured round header, monospace reveal label, bottom sheet on mobile).
 No maptap code, CSS, or audio is used. Sounds are synthesized in WebAudio: ping on tap, pong on reveal, chord for 90+, clap for a 700+ finish.

@@ -131,6 +131,35 @@ function distanceMetres(a, b) {
   const s = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(s));
 }
+function inRing(pt, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [yi, xi] = ring[i], [yj, xj] = ring[j];
+    if ((yi > pt.lat) !== (yj > pt.lat) && pt.lng < (xj - xi) * (pt.lat - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+function nearestPoint(guess, place) {
+  if (!place.polygon) return { lat: place.lat, lng: place.lng };
+  if (place.polygon.some(ring => inRing(guess, ring))) return guess;
+  const k = Math.cos(guess.lat * Math.PI / 180);
+  let best = null, bestD = Infinity;
+  for (const ring of place.polygon) {
+    for (let i = 0; i < ring.length - 1; i++) {
+      const ax = (ring[i][1] - guess.lng) * k, ay = ring[i][0] - guess.lat;
+      const bx = (ring[i + 1][1] - guess.lng) * k, by = ring[i + 1][0] - guess.lat;
+      const dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy;
+      const t = len2 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / len2)) : 0;
+      const px = ax + dx * t, py = ay + dy * t, d = px * px + py * py;
+      if (d < bestD) { bestD = d; best = { lat: guess.lat + py, lng: guess.lng + px / k }; }
+    }
+  }
+  return best;
+}
+function drawPlace(place, colour, layer) {
+  if (!place.polygon) return;
+  L.polygon(place.polygon, { color: colour, weight: 2, fillColor: colour, fillOpacity: 0.25, interactive: false }).addTo(layer);
+}
 function scoreFor(metres) {
   return Math.round(100 * Math.min(1, Math.max(0, 1 - (metres - 50) / 2950)));
 }
@@ -278,7 +307,7 @@ function onTap(e) {
   const round = state.rounds.length + 1;
   const place = daily[round - 1];
   const guess = { lat: e.latlng.lat, lng: e.latlng.lng };
-  const metres = Math.round(distanceMetres(guess, place));
+  const metres = Math.round(distanceMetres(guess, nearestPoint(guess, place)));
   const score = scoreFor(metres);
   state.rounds.push({ round, name: place.name, guess, metres, score });
   save();
@@ -292,16 +321,17 @@ function reveal(place, guess, metres, score, round, animate) {
   lingerLayer.clearLayers();
   pin(guess, colour, roundLayer);
   ripple(guess, roundLayer);
+  const target = nearestPoint(guess, place);
   const line = L.polyline([guess, guess], { color: colour, weight: 3, dashArray: '6 6' }).addTo(roundLayer);
-  const bounds = L.latLngBounds([guess, place]).pad(0.5);
+  const bounds = L.latLngBounds([guess, place, ...(place.polygon ?? []).flat()]).pad(0.3);
   map.fitBounds(bounds, { paddingTopLeft: [0, hudHeight() + 10], paddingBottomRight: [0, 40], maxZoom: 17, animate });
 
   const finish = () => {
-    line.setLatLngs([guess, place]);
-    pin(place, '#000', roundLayer);
-    ripple(place, roundLayer);
-    const flip = map.latLngToContainerPoint(place).x > map.getSize().x * 0.55;
-    L.marker(place, { interactive: false, icon: L.divIcon({ className: 'reveal', iconSize: [0, 0], html:
+    line.setLatLngs([guess, target]);
+    drawPlace(place, colour, roundLayer);
+    if (metres > 0) { pin(target, '#000', roundLayer); ripple(target, roundLayer); }
+    const flip = map.latLngToContainerPoint(target).x > map.getSize().x * 0.4;
+    L.marker(target, { interactive: false, icon: L.divIcon({ className: 'reveal', iconSize: [0, 0], html:
       `<div class="inner${flip ? ' left' : ''}"><div class="name">📍 ${place.name}</div><div class="dist">Distance: ${fmtDistance(metres)}</div><div style="color:${colour}">Score: ${score}${m > 1 ? ` (x${m})` : ''}</div><div class="quip">${quip(score, metres)}</div></div>` }) }).addTo(roundLayer);
     renderScore();
     Sound.play(score >= 90 ? 'oooo' : 'location');
@@ -319,7 +349,7 @@ function reveal(place, guess, metres, score, round, animate) {
   const t0 = performance.now(), dur = 900;
   (function step(now) {
     const t = Math.min(1, (now - t0) / dur), k = t * t * (3 - 2 * t);
-    line.setLatLngs([guess, { lat: guess.lat + (place.lat - guess.lat) * k, lng: guess.lng + (place.lng - guess.lng) * k }]);
+    line.setLatLngs([guess, { lat: guess.lat + (target.lat - guess.lat) * k, lng: guess.lng + (target.lng - guess.lng) * k }]);
     if (t < 1) requestAnimationFrame(step); else finish();
   })(t0);
 }
@@ -336,9 +366,11 @@ function endGame() {
   state.rounds.forEach(r => {
     const place = daily[r.round - 1];
     const colour = scoreColour(r.score);
+    const target = nearestPoint(r.guess, place);
     pin(r.guess, colour, lingerLayer);
-    L.polyline([r.guess, place], { color: colour, weight: 2, dashArray: '4 6' }).addTo(lingerLayer);
-    pin(place, '#000', lingerLayer);
+    drawPlace(place, colour, lingerLayer);
+    L.polyline([r.guess, target], { color: colour, weight: 2, dashArray: '4 6' }).addTo(lingerLayer);
+    if (r.metres > 0) pin(target, '#000', lingerLayer);
   });
   renderScore();
   setHeader(`Game over`, '#44f8fb');
