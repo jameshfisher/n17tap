@@ -1,0 +1,567 @@
+[
+ {
+  "name": "Aldi",
+  "kind": "supermarket",
+  "lat": 51.596051,
+  "lng": -0.067899,
+  "street": "High Road"
+ },
+ {
+  "name": "Armadale Green",
+  "kind": "park",
+  "lat": 51.585038,
+  "lng": -0.056934
+ },
+ {
+  "name": "Asda",
+  "kind": "supermarket",
+  "lat": 51.593613,
+  "lng": -0.069038,
+  "street": "High Road"
+ },
+ {
+  "name": "Beavertown Brewery Taproom",
+  "kind": "pub",
+  "lat": 51.590616,
+  "lng": -0.056796,
+  "street": "Mill Mead Road"
+ },
+ {
+  "name": "Beavertown Corner Pin",
+  "kind": "pub",
+  "lat": 51.602249,
+  "lng": -0.067344,
+  "street": "High Road"
+ },
+ {
+  "name": "Belmont Recreation Ground",
+  "kind": "park",
+  "lat": 51.59173,
+  "lng": -0.095261
+ },
+ {
+  "name": "Bilo Food Centre",
+  "kind": "supermarket",
+  "lat": 51.598072,
+  "lng": -0.079387
+ },
+ {
+  "name": "Bricklayers Arms",
+  "kind": "pub",
+  "lat": 51.605918,
+  "lng": -0.068396,
+  "street": "High Road"
+ },
+ {
+  "name": "Broadwater Farm Community Centre",
+  "kind": "community centre",
+  "lat": 51.59567,
+  "lng": -0.084624,
+  "street": "Adams Road"
+ },
+ {
+  "name": "Brook Street Chapel",
+  "kind": "church",
+  "lat": 51.593248,
+  "lng": -0.069024,
+  "blurb": "Brook Street Chapel is a church building in Tottenham, North London. The building was constructed for use as a meeting place for local Christians affiliated with the Plymouth Brethren movement.",
+  "url": "https://en.wikipedia.org/wiki/Brook_Street_Chapel"
+ },
+ {
+  "name": "Bruce Castle",
+  "kind": "manor house",
+  "lat": 51.599182,
+  "lng": -0.075437,
+  "blurb": "Bruce Castle is a Grade I listed 16th-century manor house in Lordship Lane, Tottenham, London. It is named after the House of Bruce who formerly owned the land on which it is built. Believed to stand on the site of an earlier building, about which little is known, the current house is one of the oldest surviving English brick houses. It was remodelled in the 17th, 18th and 19th centuries.",
+  "url": "https://en.wikipedia.org/wiki/Bruce_Castle"
+ },
+ {
+  "name": "Bruce Castle Museum",
+  "kind": "museum",
+  "lat": 51.599098,
+  "lng": -0.075367,
+  "street": "Lordship Lane"
+ },
+ {
+  "name": "Bruce Castle Park",
+  "kind": "park",
+  "lat": 51.600226,
+  "lng": -0.073964
+ },
+ {
+  "name": "Bruce Grove",
+  "kind": "station",
+  "lat": 51.593711,
+  "lng": -0.070005,
+  "blurb": "Bruce Grove is a station on the Weaver line of the London Overground, located in central Tottenham in the London Borough of Haringey, north London. It is 6 miles 28 chains (10.2 km) down the line from London Liverpool Street and is situated between Seven Sisters and White Hart Lane stations. Its three-letter station code is BCV and it is in London fare zone 3.\n",
+  "url": "https://en.wikipedia.org/wiki/Bruce_Grove_railway_station"
+ },
+ {
+  "name": "Church of St Francis",
+  "kind": "church",
+  "lat": 51.58988,
+  "lng": -0.056998,
+  "street": "Lebus Street"
+ },
+ {
+  "name": "Coles Park Stadium",
+  "kind": "stadium",
+  "lat": 51.605578,
+  "lng": -0.092711
+ },
+ {
+  "name": "Coombes Croft Library",
+  "kind": "library",
+  "lat": 51.603556,
+  "lng": -0.068311
+ },
+ {
+  "name": "Dayi",
+  "kind": "supermarket",
+  "lat": 51.604951,
+  "lng": -0.086531
+ },
+ {
+  "name": "Down Lane Park",
+  "kind": "park",
+  "lat": 51.591524,
+  "lng": -0.061905
+ },
+ {
+  "name": "Downhills Park",
+  "kind": "park",
+  "lat": 51.588854,
+  "lng": -0.089224,
+  "blurb": "Downhills Park is a park in the West Green area of Haringey just on the edge of Wood Green and Tottenham.",
+  "url": "https://en.wikipedia.org/wiki/Downhills_Park"
+ },
+ {
+  "name": "Duke's Aldridge Academy",
+  "kind": "school",
+  "lat": 51.604341,
+  "lng": -0.063338,
+  "street": "Trulock Road",
+  "blurb": "Duke's Aldridge Academy is a co-educational secondary school in the Northumberland Park ward of Tottenham in the London Borough of Haringey, United Kingdom.",
+  "url": "https://en.wikipedia.org/wiki/Duke's_Aldridge_Academy"
+ },
+ {
+  "name": "Friends' Meeting House",
+  "kind": "church",
+  "lat": 51.596272,
+  "lng": -0.067918,
+  "street": "High Road"
+ },
+ {
+  "name": "Haringey Irish Cultural and Community Centre",
+  "kind": "community centre",
+  "lat": 51.606268,
+  "lng": -0.07248
+ },
+ {
+  "name": "Haringey Sixth Form College",
+  "kind": "college",
+  "lat": 51.606598,
+  "lng": -0.072966,
+  "street": "White Hart Lane",
+  "blurb": "Haringey Sixth Form College is a mixed-sex sixth form college located in the Tottenham area of the London Borough of Haringey, United Kingdom.",
+  "url": "https://en.wikipedia.org/wiki/Haringey_Sixth_Form_College"
+ },
+ {
+  "name": "Hartington Park",
+  "kind": "park",
+  "lat": 51.597543,
+  "lng": -0.064474
+ },
+ {
+  "name": "Holcombe Market",
+  "kind": "market",
+  "lat": 51.592956,
+  "lng": -0.069382,
+  "street": "Holcombe Road"
+ },
+ {
+  "name": "London Academy of Excellence Tottenham",
+  "kind": "college",
+  "lat": 51.605482,
+  "lng": -0.066441,
+  "street": "High Road",
+  "blurb": "The London Academy of Excellence Tottenham is an academically selective free school for pupils aged 16–19. The sixth-form academy was opened in September 2017 in the London borough of Haringey.",
+  "url": "https://en.wikipedia.org/wiki/London_Academy_of_Excellence_Tottenham"
+ },
+ {
+  "name": "Loon Fung Tottenham",
+  "kind": "supermarket",
+  "lat": 51.607973,
+  "lng": -0.060549,
+  "street": "Brantwood Road"
+ },
+ {
+  "name": "Lordship Hub",
+  "kind": "community centre",
+  "lat": 51.593529,
+  "lng": -0.087166
+ },
+ {
+  "name": "Lordship Recreation Ground",
+  "kind": "park",
+  "lat": 51.594363,
+  "lng": -0.087373
+ },
+ {
+  "name": "Lordship Skatepark",
+  "kind": "skatepark",
+  "lat": 51.595343,
+  "lng": -0.086129
+ },
+ {
+  "name": "Miller Memorial Methodist Church",
+  "kind": "church",
+  "lat": 51.59362,
+  "lng": -0.078027
+ },
+ {
+  "name": "Mother Kelly's",
+  "kind": "bar",
+  "lat": 51.590054,
+  "lng": -0.061562,
+  "street": "Ashley Road"
+ },
+ {
+  "name": "Nazar Supermarket",
+  "kind": "supermarket",
+  "lat": 51.599797,
+  "lng": -0.068152,
+  "street": "High Road"
+ },
+ {
+  "name": "Neza Bar",
+  "kind": "bar",
+  "lat": 51.598185,
+  "lng": -0.077138
+ },
+ {
+  "name": "No.8 Tottenham",
+  "kind": "pub",
+  "lat": 51.602053,
+  "lng": -0.067461,
+  "street": "High Road"
+ },
+ {
+  "name": "Northumberland Park",
+  "kind": "station",
+  "lat": 51.601908,
+  "lng": -0.053865,
+  "blurb": "Northumberland Park railway station is on the Lea Valley line that forms part of the West Anglia Main Line, serving the ward of Northumberland Park in Tottenham, north London. It is 6 miles 73 chains (11.1 km) down the line from London Liverpool Street and is situated between Tottenham Hale and Meridian Water. Its three-letter station code is NUM and it is in London fare zone 3. It is one of the stations that can be used to access Tottenham Hotspur Stadium.",
+  "url": "https://en.wikipedia.org/wiki/Northumberland_Park_railway_station_(London)"
+ },
+ {
+  "name": "Ozdiller Supermarket",
+  "kind": "supermarket",
+  "lat": 51.59238,
+  "lng": -0.069983,
+  "street": "High Road"
+ },
+ {
+  "name": "Powerleague Tottenham",
+  "kind": "sports centre",
+  "lat": 51.606629,
+  "lng": -0.053265
+ },
+ {
+  "name": "Premier Inn Tottenham Hale",
+  "kind": "hotel",
+  "lat": 51.588797,
+  "lng": -0.062695,
+  "street": "Station Road"
+ },
+ {
+  "name": "Pressure Drop",
+  "kind": "pub",
+  "lat": 51.590527,
+  "lng": -0.058041
+ },
+ {
+  "name": "Said Nursi Camii",
+  "kind": "mosque",
+  "lat": 51.605111,
+  "lng": -0.054232
+ },
+ {
+  "name": "Sainsbury's",
+  "kind": "supermarket",
+  "lat": 51.606053,
+  "lng": -0.066088,
+  "street": "Northumberland Park"
+ },
+ {
+  "name": "Saint Francis de Sales Catholic Church",
+  "kind": "church",
+  "lat": 51.603192,
+  "lng": -0.068388
+ },
+ {
+  "name": "Shell Theatre (outdoor)",
+  "kind": "outdoor theatre",
+  "lat": 51.595128,
+  "lng": -0.086087
+ },
+ {
+  "name": "Somerford Grove Adventure Playground",
+  "kind": "playground",
+  "lat": 51.603079,
+  "lng": -0.060981
+ },
+ {
+  "name": "St Benet Fink Church",
+  "kind": "church",
+  "lat": 51.59731,
+  "lng": -0.091071,
+  "blurb": "St Benet Fink, Tottenham, is an Anglican church in Tottenham, London.",
+  "url": "https://en.wikipedia.org/wiki/St_Benet_Fink_Church%2C_Tottenham"
+ },
+ {
+  "name": "St Mark's Methodist Church",
+  "kind": "church",
+  "lat": 51.592049,
+  "lng": -0.070073,
+  "street": "High Road"
+ },
+ {
+  "name": "St Mary's Church",
+  "kind": "church",
+  "lat": 51.598443,
+  "lng": -0.066432,
+  "street": "Lansdowne Road",
+  "blurb": "St Mary's Church is a Church of England parish church on the south side of Lansdowne Road in Tottenham in north London.",
+  "url": "https://en.wikipedia.org/wiki/St_Mary's_Church%2C_Tottenham"
+ },
+ {
+  "name": "St Paul's Tottenham",
+  "kind": "church",
+  "lat": 51.602179,
+  "lng": -0.063742,
+  "street": "Park Lane",
+  "blurb": "St Paul the Apostle is a church in the Church of England Diocese of London in Tottenham, London, England.",
+  "url": "https://en.wikipedia.org/wiki/St_Paul's_Church%2C_Tottenham"
+ },
+ {
+  "name": "St. John's Church",
+  "kind": "church",
+  "lat": 51.606027,
+  "lng": -0.08512
+ },
+ {
+  "name": "Szampion Polskie Delikatesy",
+  "kind": "supermarket",
+  "lat": 51.600492,
+  "lng": -0.067581,
+  "street": "High Road"
+ },
+ {
+  "name": "The Antwerp Arms",
+  "kind": "pub",
+  "lat": 51.601844,
+  "lng": -0.074827,
+  "street": "Church Road"
+ },
+ {
+  "name": "The Beehive",
+  "kind": "pub",
+  "lat": 51.592232,
+  "lng": -0.069252,
+  "street": "Stoneleigh Road"
+ },
+ {
+  "name": "The Bill Nicholson",
+  "kind": "pub",
+  "lat": 51.605607,
+  "lng": -0.06169,
+  "street": "Northumberland Park"
+ },
+ {
+  "name": "The Bluecoats Pub",
+  "kind": "pub",
+  "lat": 51.596932,
+  "lng": -0.068052,
+  "street": "High Road"
+ },
+ {
+  "name": "The Coach and Horses",
+  "kind": "pub",
+  "lat": 51.607574,
+  "lng": -0.067793,
+  "street": "High Road"
+ },
+ {
+  "name": "The Elbow Room",
+  "kind": "pub",
+  "lat": 51.593456,
+  "lng": -0.069793,
+  "street": "High Road"
+ },
+ {
+  "name": "The Elmhurst",
+  "kind": "pub",
+  "lat": 51.598349,
+  "lng": -0.075939,
+  "street": "Lordship Lane"
+ },
+ {
+  "name": "The Ferry Boat Inn",
+  "kind": "pub",
+  "lat": 51.586952,
+  "lng": -0.052508,
+  "street": "Ferry Lane"
+ },
+ {
+  "name": "The Frederick Knight Sports Ground",
+  "kind": "sports centre",
+  "lat": 51.606742,
+  "lng": -0.052956
+ },
+ {
+  "name": "The High Cross",
+  "kind": "pub",
+  "lat": 51.589379,
+  "lng": -0.070125,
+  "street": "High Road"
+ },
+ {
+  "name": "The Mulberry Tree Community Garden",
+  "kind": "park",
+  "lat": 51.596233,
+  "lng": -0.067481
+ },
+ {
+  "name": "The New Moon",
+  "kind": "pub",
+  "lat": 51.597754,
+  "lng": -0.09129,
+  "street": "Lordship Lane"
+ },
+ {
+  "name": "The Olive Branch",
+  "kind": "pub",
+  "lat": 51.602594,
+  "lng": -0.059953,
+  "street": "Park Lane"
+ },
+ {
+  "name": "The Parish Church of All Hallows",
+  "kind": "church",
+  "lat": 51.600752,
+  "lng": -0.07651,
+  "blurb": "All Hallows is an Anglican church in Tottenham, North London. It is one of the oldest buildings in the London Borough of Haringey, having been built as All Saints' Church in the 12th century, then re-dedicated as All Hallows in the 15th century.",
+  "url": "https://en.wikipedia.org/wiki/All_Hallows'_Church%2C_Tottenham"
+ },
+ {
+  "name": "The Ship",
+  "kind": "pub",
+  "lat": 51.593315,
+  "lng": -0.069823,
+  "street": "High Road"
+ },
+ {
+  "name": "The Two Brewers",
+  "kind": "pub",
+  "lat": 51.596841,
+  "lng": -0.067029
+ },
+ {
+  "name": "The Victoria",
+  "kind": "pub",
+  "lat": 51.596779,
+  "lng": -0.067263,
+  "street": "Scotland Green"
+ },
+ {
+  "name": "The Volunteer",
+  "kind": "pub",
+  "lat": 51.590311,
+  "lng": -0.064579,
+  "street": "Chesnut Road"
+ },
+ {
+  "name": "Tottenham Baptist Church",
+  "kind": "church",
+  "lat": 51.601323,
+  "lng": -0.068535
+ },
+ {
+  "name": "Tottenham Cemetery",
+  "kind": "cemetery",
+  "lat": 51.602851,
+  "lng": -0.078652,
+  "blurb": "Tottenham Cemetery is a large burial ground in Tottenham in the London Borough of Haringey, in north London, England. It was opened in 1858 by the Tottenham Burial Board to replace the churchyard of All Hallows' Church, Tottenham which had closed the previous year. The original five-acre site was not entirely consecrated, with two acres designated for non-Church of England burials.",
+  "url": "https://en.wikipedia.org/wiki/Tottenham_Cemetery"
+ },
+ {
+  "name": "Tottenham Community Sports Centre",
+  "kind": "sports centre",
+  "lat": 51.601836,
+  "lng": -0.068704,
+  "street": "High Road"
+ },
+ {
+  "name": "Tottenham Fire Station",
+  "kind": "fire station",
+  "lat": 51.59233,
+  "lng": -0.07179
+ },
+ {
+  "name": "Tottenham Hale",
+  "kind": "station",
+  "lat": 51.588123,
+  "lng": -0.059944,
+  "blurb": "Tottenham Hale is an interchange station located in Tottenham Hale, north London for London Underground and National Rail services. On the National Rail network it is on the Lea Valley Lines section of the West Anglia Main Line, 6 miles (9.7 km) from London Liverpool Street, and is served by Greater Anglia and Stansted Express. On the Underground it is on the Victoria line between Blackhorse Road and Seven Sisters.",
+  "url": "https://en.wikipedia.org/wiki/Tottenham_Hale_station"
+ },
+ {
+  "name": "Tottenham Hotspur Stadium",
+  "kind": "stadium",
+  "lat": 51.604146,
+  "lng": -0.066267,
+  "blurb": "Tottenham Hotspur Stadium is a multi-purpose stadium in London, England. It is owned and operated by the Premier League club Tottenham Hotspur, replacing the club's previous ground, White Hart Lane. With a seating capacity of 62,850, it is the third largest football stadium in England and the largest club ground in London. It is also used for NFL International Series games. It features the world's first dividing, retractable synthetic turf pitch used for NFL games, concerts and other events.",
+  "url": "https://en.wikipedia.org/wiki/Tottenham_Hotspur_Stadium"
+ },
+ {
+  "name": "Tottenham Marshes",
+  "kind": "park",
+  "lat": 51.597087,
+  "lng": -0.049072
+ },
+ {
+  "name": "Tottenham Police Station",
+  "kind": "police station",
+  "lat": 51.590831,
+  "lng": -0.069635
+ },
+ {
+  "name": "Tower Gardens Park",
+  "kind": "park",
+  "lat": 51.599067,
+  "lng": -0.08398
+ },
+ {
+  "name": "Walthamstow Wetlands",
+  "kind": "nature reserve",
+  "lat": 51.586621,
+  "lng": -0.051922,
+  "blurb": "Walthamstow Wetlands is a 211-hectare nature reserve in Walthamstow, east London, adjacent to the River Lea in the London Borough of Waltham Forest. It is focused on the Walthamstow Reservoirs, built by the East London Waterworks Company between 1853 and 1904 as part of the Lee Valley Reservoir Chain. The site is one of the largest urban wetland nature reserves in Europe and is particularly important for wildlife due to its position within the Lee Valley. It serves as a byway for migrating, wintering and breeding birds. Visitors can freely access the site's natural, industrial and social heritage in one of the capital's most densely populated urban areas.",
+  "url": "https://en.wikipedia.org/wiki/Walthamstow_Wetlands"
+ },
+ {
+  "name": "Waltheof Gardens",
+  "kind": "park",
+  "lat": 51.600934,
+  "lng": -0.08711
+ },
+ {
+  "name": "White Hart Lane",
+  "kind": "station",
+  "lat": 51.604534,
+  "lng": -0.070915,
+  "blurb": "White Hart Lane is a station on the Weaver line of the London Overground, located in Tottenham in the London Borough of Haringey in North London. It is 7 miles 11 chains (11.5 km) from London Liverpool Street and is situated between Bruce Grove and Silver Street stations. It is in London fare zone 3. The station is close to Bruce Grove and the Tottenham Hotspur Stadium, the home ground of Tottenham Hotspur Football Club.",
+  "url": "https://en.wikipedia.org/wiki/White_Hart_Lane_railway_station"
+ }
+]
