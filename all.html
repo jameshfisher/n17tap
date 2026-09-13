@@ -35,14 +35,28 @@ const map = L.map('map', { zoomSnap: 0, zoomDelta: 0.5, wheelPxPerZoomLevel: 10,
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Esri, Maxar, Earthstar Geographics', maxZoom: 19 }).addTo(map);
 
 const layersByKind = {};
+for (const [name, z] of [['areas', 401], ['lines', 402], ['markers', 403]]) map.createPane(name).style.zIndex = z;
+const polygons = [];
 function popup(p) {
   return `<b>${p.name}</b><br>${p.kind} · difficulty ${p.difficulty}${p.street ? `<br>${p.street}` : ''}${p.url ? `<br><a href="${p.url}" target="_blank">Wikipedia</a>` : ''}`;
 }
+function area(rings) {
+  let sum = 0;
+  for (const ring of rings)
+    for (let i = 0; i < ring.length - 1; i++) sum += ring[i][1] * ring[i + 1][0] - ring[i + 1][1] * ring[i][0];
+  return Math.abs(sum);
+}
 function draw(p, layer) {
   const colour = DIFFICULTY_COLOURS[p.difficulty] ?? '#fff';
-  if (p.polygon) L.polygon(p.polygon, { color: colour, weight: 1.5, fillColor: colour, fillOpacity: 0.3 }).bindPopup(popup(p)).addTo(layer);
-  if (p.lines) L.polyline(p.lines, { color: colour, weight: 4, opacity: 0.8 }).bindPopup(popup(p)).addTo(layer);
-  L.circleMarker([p.lat, p.lng], { radius: 5, color: '#000', weight: 1, fillColor: colour, fillOpacity: 1 }).bindPopup(popup(p)).addTo(layer);
+  if (p.polygon) {
+    const poly = L.polygon(p.polygon, { pane: 'areas', color: colour, weight: 1.5, fillColor: colour, fillOpacity: 0.3 }).bindPopup(popup(p)).addTo(layer);
+    polygons.push({ area: area(p.polygon), poly });
+  }
+  if (p.lines) L.polyline(p.lines, { pane: 'lines', color: colour, weight: 4, opacity: 0.8 }).bindPopup(popup(p)).addTo(layer);
+  L.circleMarker([p.lat, p.lng], { pane: 'markers', radius: 5, color: '#000', weight: 1, fillColor: colour, fillOpacity: 1 }).bindPopup(popup(p)).addTo(layer);
+}
+function smallestOnTop() {
+  for (const { poly } of [...polygons].sort((a, b) => b.area - a.area)) if (map.hasLayer(poly)) poly.bringToFront();
 }
 
 async function init() {
@@ -58,6 +72,7 @@ async function init() {
     layersByKind[p.kind] ??= L.layerGroup().addTo(map);
     draw(p, layersByKind[p.kind]);
   }
+  smallestOnTop();
   const legend = document.getElementById('legend');
   legend.innerHTML = `<div style="margin-bottom:6px">${places.length} places · <span class="d" style="background:${DIFFICULTY_COLOURS[1]}"></span>1 <span class="d" style="background:${DIFFICULTY_COLOURS[2]}"></span>2 <span class="d" style="background:${DIFFICULTY_COLOURS[3]}"></span>3</div>`
     + Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([kind, n]) =>
@@ -65,6 +80,7 @@ async function init() {
   legend.querySelectorAll('input').forEach(cb => cb.onchange = () => {
     const layer = layersByKind[cb.dataset.kind];
     cb.checked ? layer.addTo(map) : map.removeLayer(layer);
+    smallestOnTop();
   });
 }
 init();
