@@ -100,5 +100,43 @@
   "extract": "St Philip the Apostle Church is a Church of England parish church in Tottenham, London, and part of the Diocese of London.",
   "url": "https://en.wikipedia.org/wiki/St_Philip_the_Apostle%2C_Tottenham",
   "image": "St Philip the Apostle, Tottenham.jpg"
+ },
+ "Lockwood Reservoir": {
+  "extract": "Lockwood Reservoir is located in Walthamstow in the London Borough of Waltham Forest. It is one of the ten Walthamstow Reservoirs, which are part of the Lee Valley Reservoir Chain. The reservoirs supply drinking water to London and are owned by Thames Water.",
+  "url": "https://en.wikipedia.org/wiki/Lockwood_Reservoir",
+  "image": "Aerial view of Walthamstow Reservoirs from the north.jpg"
+ },
+ "Broadwater_Farm": {
+  "extract": "Broadwater Farm, often referred to simply as \"The Farm\", is an area in Tottenham, North London, straddling the River Moselle. The eastern half of the area is dominated by the Broadwater Farm Estate (\"BWFE\"), an experiment in high-density social housing, loosely based on Corbusian ideas, dominated by concrete towers connected by walkways, built in the late 1960s using cheap but fire-vulnerable pre-fabricated concrete panels. The western half of the area is taken up by Lordship Recreation Ground, one of north London's largest parks. Broadwater Farm in 2011 had a population of 4,844. The estate is owned by Haringey London Borough Council.",
+  "url": "https://en.wikipedia.org/wiki/Broadwater_Farm",
+  "image": "Broadwater Farm Estate from Gloucester Road.jpg"
+ },
+ "East Warwick Reservoir": {
+  "extract": "East Warwick Reservoir is located in the London Borough of Waltham Forest at Walthamstow. The storage reservoir is part of the Lee Valley Reservoir Chain and supplies drinking water to London. The reservoir is owned by Thames Water.",
+  "url": "https://en.wikipedia.org/wiki/East_Warwick_Reservoir",
+  "image": "East Warwick Reservoir 1.jpg"
+ },
+ "Low Maynard Reservoir": {
+  "extract": "Low Maynard Reservoir is located in Walthamstow in the London Borough of Waltham Forest. The storage reservoir is part of the Lee Valley Reservoir Chain and supplies drinking water to London.",
+  "url": "https://en.wikipedia.org/wiki/Low_Maynard_Reservoir",
+  "image": "Low Maynard Reservoir.jpg"
+ },
+ "High Maynard Reservoir": {
+  "extract": "High Maynard Reservoir is located in Walthamstow in the London Borough of Waltham Forest. The storage reservoir is one of the Lee Valley Reservoir Chain and supplies drinking water to London.",
+  "url": "https://en.wikipedia.org/wiki/High_Maynard_Reservoir",
+  "image": "High Maynard Reservoir, London - 2023-05-01.jpg"
+ },
+ "Beavertown Brewery": {
+  "extract": "Beavertown Brewery is a British brewery based in Tottenham, north London, England. It was acquired by the Dutch company Heineken in 2022.",
+  "url": "https://en.wikipedia.org/wiki/Beavertown_Brewery"
+ },
+ "Tottenham Hotspur F.C.": {
+  "extract": "Tottenham Hotspur Football Club, commonly referred to as simply Tottenham or Spurs, is a professional football club based in Tottenham, North London, England. They compete in the Premier League, the top tier of English football. Since 2019, the team have played their home matches in the Tottenham Hotspur Stadium. It was built on the same site as their previous home, White Hart Lane, which was demolished.",
+  "url": "https://en.wikipedia.org/wiki/Tottenham_Hotspur_F.C."
+ },
+ "Coppermill Stream": {
+  "extract": "The Coppermill Stream is a short waterway near Walthamstow in the Lea Valley. Originally a minor tributary of the River Lea, the approximately 2-mile (3.2 km) long stream is now used as an aqueduct to transport water from the reservoirs in the Lea Valley to Coppermills Water Treatment Works. The stream is part of a Site of Metropolitan Importance.",
+  "url": "https://en.wikipedia.org/wiki/Coppermill_Stream",
+  "image": "Coppermill Stream at Tottenham.jpg"
  }
 }

@@ -7,8 +7,9 @@ const WIKIDATA_FILE = "wikidata/entities.json.gz";
 const SUMMARY_CACHE = "wikipedia/summaries.json";
 const OUT_FILE = "places.json";
 
-const CUTOFF = 5;
-const WIKIPEDIA_BONUS = 2;
+const CUTOFF = 2.9;
+const WIKIPEDIA_BONUS = 3;
+const WIKIDATA_BONUS = 1;
 
 type LatLng = { lat: number; lng: number };
 type Ring = [number, number][];
@@ -114,10 +115,71 @@ const ROADS: Record<string, number> = {
   secondary: 6,
   tertiary: 5,
   pedestrian: 2,
-  unclassified: 3.5,
-  residential: 3.5,
+  unclassified: 2,
+  residential: 2,
   living_street: 2,
 };
+
+const DEFAULT_BASE = 2;
+
+const PRIMARY_KEYS = [
+  "amenity", "leisure", "tourism", "historic", "shop", "craft", "office",
+  "man_made", "natural", "waterway", "landuse", "building", "healthcare",
+];
+
+const LABELS: Record<string, string> = {
+  "landuse=residential": "estate",
+  "landuse=industrial": "industrial estate",
+  "landuse=retail": "retail park",
+  "landuse=commercial": "business park",
+  "landuse=railway": "railway land",
+  "landuse=construction": "building site",
+  "natural=water": "lake",
+  "natural=wood": "wood",
+  "natural=grassland": "meadow",
+  "waterway=drain": "ditch",
+  "man_made=works": "works",
+  "amenity=courthouse": "court",
+  "amenity=social_facility": "care home",
+  "amenity=fast_food": "takeaway",
+  "amenity=place_of_worship": "place of worship",
+  "leisure=fitness_centre": "gym",
+  "leisure=fitness_station": "outdoor gym",
+  "leisure=track": "track",
+  "tourism=artwork": "sculpture",
+  "tourism=information": "information board",
+  "shop=doityourself": "DIY shop",
+  "shop=bookmaker": "bookies",
+  "shop=convenience": "corner shop",
+  "building=apartments": "block of flats",
+  "building=hall_of_residence": "halls of residence",
+  "building=train_station": "station building",
+};
+
+function isPlace(tags: Tags): boolean {
+  if (tags.highway || tags.railway || tags.public_transport || tags.route) return false;
+  if (tags.entrance || tags.barrier || tags.place || tags.boundary || tags.power) return false;
+  if (tags.type === "route" || tags.type === "boundary" || tags.type === "site") return false;
+  if (tags.natural === "tree") return false;
+  return PRIMARY_KEYS.some((k) => tags[k]);
+}
+
+function label(tags: Tags): string {
+  if (tags.natural === "water" && tags.water) return tags.water.replace(/_/g, " ");
+  for (const key of PRIMARY_KEYS) {
+    const v = tags[key];
+    if (!v) continue;
+    const override = LABELS[`${key}=${v}`];
+    if (override) return override;
+    return v === "yes" ? key : v.replace(/_/g, " ");
+  }
+  return "place";
+}
+
+function notabilityBonus(tags: Tags, wikipedia: string | undefined): number {
+  if (wikipedia) return WIKIPEDIA_BONUS;
+  return tags.wikidata ? WIKIDATA_BONUS : 0;
+}
 
 function kindOf(tags: Tags): Kind | undefined {
   if (tags.amenity === "place_of_worship")
@@ -128,7 +190,7 @@ function kindOf(tags: Tags): Kind | undefined {
     const v = tags[key];
     if (v && values[v]) return values[v];
   }
-  return undefined;
+  return isPlace(tags) ? { kind: label(tags), base: DEFAULT_BASE } : undefined;
 }
 
 function isDefunct(tags: Tags): boolean {
@@ -391,7 +453,7 @@ function candidate(
     size: squareMetres,
     wikidata: tags.wikidata,
     wikipedia,
-    score: kind.base + sizeBonus + (wikipedia ? WIKIPEDIA_BONUS : 0),
+    score: kind.base + sizeBonus + notabilityBonus(tags, wikipedia),
   };
 }
 
@@ -423,38 +485,44 @@ for (const [id, rel] of relations) {
   if (c) candidates.push(c);
 }
 
-const roads = new Map<string, { lines: Ring[]; tags: Tags; base: number }>();
+const lines = new Map<string, { lines: Ring[]; tags: Tags; kind: Kind }>();
 for (const [id, way] of ways) {
-  const base = ROADS[way.tags.highway ?? ""];
-  if (base === undefined || !way.tags.name) continue;
+  if (!way.tags.name || isDefunct(way.tags) || isClosed(way.tags)) continue;
+  const roadBase = ROADS[way.tags.highway ?? ""];
+  const kind: Kind | undefined =
+    roadBase !== undefined
+      ? { kind: "road", base: roadBase }
+      : way.tags.highway ? undefined : kindOf(way.tags);
+  if (!kind) continue;
   const line = wayRing(id);
-  if (!line || line.length < 2) continue;
+  if (!line || line.length < 2 || closed(line)) continue;
   if (!inPolygon(midpoint(line), boundary)) continue;
-  const road = roads.get(way.tags.name) ?? { lines: [], tags: way.tags, base };
-  road.lines.push(line);
-  road.base = Math.max(road.base, base);
-  if (wikipediaTitle(way.tags)) road.tags = way.tags;
-  roads.set(way.tags.name, road);
+  const key = `${kind.kind}/${way.tags.name}`;
+  const group = lines.get(key) ?? { lines: [], tags: way.tags, kind };
+  group.lines.push(line);
+  if (kind.base > group.kind.base) group.kind = kind;
+  if (wikipediaTitle(way.tags)) group.tags = way.tags;
+  lines.set(key, group);
 }
-for (const [name, road] of roads) {
-  const length = road.lines.reduce((sum, l) => sum + lineLength(l), 0);
-  const longest = [...road.lines].sort((a, b) => lineLength(b) - lineLength(a))[0];
-  const wikipedia = wikipediaTitle(road.tags);
+for (const [key, group] of lines) {
+  const length = group.lines.reduce((sum, l) => sum + lineLength(l), 0);
+  if (length < 50) continue;
+  const longest = [...group.lines].sort((a, b) => lineLength(b) - lineLength(a))[0];
+  const wikipedia = wikipediaTitle(group.tags);
   candidates.push({
-    id: `road/${name}`,
-    name,
-    kind: "road",
-    base: road.base,
-    tags: road.tags,
+    id: `line/${key}`,
+    name: group.tags.name,
+    ...group.kind,
+    tags: group.tags,
     centre: midpoint(longest),
-    lines: road.lines,
+    lines: group.lines,
     size: length,
-    wikidata: road.tags.wikidata,
+    wikidata: group.tags.wikidata,
     wikipedia,
     score:
-      road.base +
-      clamp(Math.log10(length / 300), -2, 2) +
-      (wikipedia ? WIKIPEDIA_BONUS : 0),
+      group.kind.base +
+      clamp(Math.log10(length / 100), -2, 3) +
+      notabilityBonus(group.tags, wikipedia),
   });
 }
 console.error(`${candidates.length} named candidates inside boundary`);
@@ -473,18 +541,12 @@ for (const c of byScore) {
     drop(c, "below cutoff");
     continue;
   }
-  const container = kept.find(
-    (k) => k.polygon && k.size > c.size && inPolygon(c.centre, k.polygon)
-  );
-  if (container && !c.lines && !c.wikipedia) {
-    drop(c, `inside ${container.name}`);
-    continue;
-  }
   const twin = kept.find(
     (k) =>
-      k.kind === c.kind &&
-      k.name.toLowerCase() === c.name.toLowerCase() &&
-      metres(k.centre, c.centre) < 300
+      (k.wikipedia !== undefined && k.wikipedia === c.wikipedia) ||
+      (k.kind === c.kind &&
+        k.name.toLowerCase() === c.name.toLowerCase() &&
+        metres(k.centre, c.centre) < 300)
   );
   if (twin) {
     drop(c, `duplicate of ${twin.id}`);
@@ -528,8 +590,8 @@ function roundRings(rings: Ring[]): Ring[] {
   return rings.map((r) => r.map(([lat, lng]) => [round6(lat), round6(lng)]));
 }
 function difficulty(score: number): number {
-  if (score >= 9) return 1;
-  if (score >= 7) return 2;
+  if (score >= 8) return 1;
+  if (score >= 5) return 2;
   return 3;
 }
 
@@ -565,7 +627,7 @@ console.error(
   `\nkept:\n${kept.map((c) => `${c.score.toFixed(1).padStart(5)} ${c.kind.padEnd(18)} ${c.name}`).join("\n")}`
 );
 console.error(
-  `\nkept ${places.length} places, ${places.filter((p) => p.polygon).length} with polygons, ${places.filter((p) => p.lines).length} roads, ${places.filter((p) => p.url).length} with wikipedia, ${places.filter((p) => p.commonsFile).length} with photo`
+  `\nkept ${places.length} places, ${places.filter((p) => p.polygon).length} with polygons, ${places.filter((p) => p.lines).length} lines, ${places.filter((p) => p.url).length} with wikipedia, ${places.filter((p) => p.commonsFile).length} with photo`
 );
 console.error(
   Object.entries(counts)
